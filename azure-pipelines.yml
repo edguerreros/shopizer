@@ -1,0 +1,57 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  name: default
+
+stages:
+- stage:
+  displayName: Obtener Aplicacion
+  jobs:
+    - job: 
+      steps:
+      - script: echo Descargando la App!
+        displayName: 'Descargando la App'
+- stage:
+  displayName: 'Compilando la aplicacion'
+  jobs:
+    - job: 
+      steps:
+      - script: mvn install
+        displayName: 'Instalando la app con Maven2'        
+- stage:
+  displayName: 'Realizando Pruebas de QA'
+  jobs:
+    - job: 
+      steps:
+      - script: echo Pruebas de Calidad de Sofware!
+        displayName: 'Calidad de Software'
+- stage:
+  displayName: 'Realizando Pruebas de Seguridad'
+  jobs:
+    - job: 
+      steps:
+      - script: mvn install
+        displayName: 'Pre requisitos de analisis SAST'
+      - script: fortifyupdate -locale es
+        displayName: 'Actualizando las reglas a la ultima version'
+      - script: sourceanalyzer -b package -clean -v
+        displayName: 'Limpiando temporales'
+      - script: sourceanalyzer -b package mvn
+        displayName: 'Traduccion al modelo Fortify'
+      - script: sourceanalyzer -b package -scan -f package.fpr
+        displayName: 'Generacion del Archivo FPR'
+      - script: fortifyclient -url http://10.0.1.1:8080/ssc -authtoken 66efaf80-e1a4-4bd5-8ca6-003e936ae2ed uploadFPR -file package.fpr -applicationVersionID 10016
+        displayName: 'Cargando archivo a Fortify SSC'
+- stage:
+  displayName: 'Publicando Artefacto'
+  jobs:
+    - job: 
+      steps:
+      - script: echo Publicando App!
+        displayName: 'Publicando App'
